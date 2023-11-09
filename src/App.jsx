@@ -6,9 +6,15 @@ import './App.css';
 
 
 function App() {
+  //Get total transactions available, so when selecting a transaction we can check if its valid
   const [transactionCount, setTransactionCount] = useState(0);
-  const [allMessages, setAllMessage] = useState({});
+  //Choose which transaction we want to look at, if txn 1 is chosen display txn 1 data
+  const [currentTransaction, setCurrentTransaction] = useState(0);
+  //Info for PBFT diagram, sent to PBFT data=
   const [diagramInfo, setDiagramInfo] = useState({});
+  //Stores all messages from ResDB
+  const [allMessages, setAllMessage] = useState({});
+
 
   const addMessage = (newMessage) => {
     const txn_number = String(newMessage.txn_number);
