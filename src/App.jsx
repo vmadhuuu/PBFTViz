@@ -33,7 +33,7 @@ function App() {
     }
   }
 
-  txn_1_replicaMessage_1 ={
+  let txn_1_replicaMessage_1 ={
     commit_message_timestamps:["1699498916980955291","1699498917019202616","1699498917020796980"],
     commit_time:"1699498917020812647",
     execution_time:"1699498917020924446",
@@ -50,7 +50,7 @@ function App() {
     txn_values:["test_value"]
   };
 
-  txn_1_replicaMessage_2 ={
+  let txn_1_replicaMessage_2 ={
     commit_message_timestamps:["1699498916998967192","1699498917019423780","1699498917028727456"],
     commit_time:"1699498917028787428",
     execution_time:"1699498917028853968",
@@ -67,7 +67,7 @@ function App() {
     txn_values:["test_value"]
   };
 
-  txn_1_replicaMessage_3 ={
+  let txn_1_replicaMessage_3 ={
     commit_message_timestamps:["1699498916989884752","1699498917010008941","1699498917010854301"],
     commit_time:"1699498917018692475",
     execution_time:"1699498917019099277",
@@ -84,7 +84,7 @@ function App() {
     txn_values:["test_value"]
   };
 
-  txn_1_replicaMessage_4 ={
+  let txn_1_replicaMessage_4 ={
     commit_message_timestamps:["1699498916988676310","1699498917018959109","1699498917019124910"],
     commit_time:"1699498917019135078",
     execution_time:"1699498917019563283",
@@ -101,7 +101,7 @@ function App() {
     txn_values:["test_value"]
   };
 
-  txn_2_replicaMessage_1 ={
+  let txn_2_replicaMessage_1 ={
     commit_message_timestamps:["1699498917070886051","1699498922229122655","1699498922229158009","1699498922229210601","1699498922229249484"],
     commit_time:"1699498922229218622",
     execution_time:"1699498922229342067",
@@ -118,7 +118,7 @@ function App() {
     txn_values:[""]
   };
 
-  txn_2_replicaMessage_2 ={
+  let txn_2_replicaMessage_2 ={
     commit_message_timestamps:["1699498917070886051","1699498922229122655","1699498922229158009","1699498922229210601","1699498922229249484"],
     commit_time:"1699498922229218622",
     execution_time:"1699498922229342067",
@@ -135,7 +135,7 @@ function App() {
     txn_values:[""]
   };
 
-  txn_2_replicaMessage_3 ={
+  let txn_2_replicaMessage_3 ={
     commit_message_timestamps:["1699498917059278411","1699498922209748259","1699498922219468424","1699498922219603912",1699498922220132804],
     commit_time:"1699498922219640882",
     execution_time:"1699498922229327258",
@@ -152,7 +152,7 @@ function App() {
     txn_values:[""]
   };
 
-  txn_2_replicaMessage_4 ={
+  let txn_2_replicaMessage_4 ={
     commit_message_timestamps:["1699498917079031681","1699498922210941218","1699498922220435115","1699498922220441389"],
     commit_time:"1699498922220497392",
     execution_time:"1699498922229050481",
