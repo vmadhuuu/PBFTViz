@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PBFT from './Components/pbft';
 import data from './data/data';
 import './App.css';
@@ -175,16 +175,20 @@ function App() {
     txn_values:[""]
   };
 
-  addMessage(txn_1_replicaMessage_1);
-  addMessage(txn_1_replicaMessage_2);
-  addMessage(txn_1_replicaMessage_3);
-  addMessage(txn_1_replicaMessage_4);
-  addMessage(txn_2_replicaMessage_1);
-  addMessage(txn_2_replicaMessage_2);
-  addMessage(txn_2_replicaMessage_3);
-  addMessage(txn_2_replicaMessage_4);
+  useEffect(()=> {
+    console.log(allMessages);
+    addMessage(txn_1_replicaMessage_1);
+    addMessage(txn_1_replicaMessage_2);
+    addMessage(txn_1_replicaMessage_3);
+    addMessage(txn_1_replicaMessage_4);
+    addMessage(txn_2_replicaMessage_1);
+    addMessage(txn_2_replicaMessage_2);
+    addMessage(txn_2_replicaMessage_3);
+    addMessage(txn_2_replicaMessage_4);
+    console.log(allMessages);
+  }, []);
+  
 
-  console.log(allMessages);
   return (
     <>
       <div>
