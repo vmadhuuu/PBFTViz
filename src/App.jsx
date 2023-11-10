@@ -35,7 +35,36 @@ function App() {
       }
       updatedMessageList[txn_number]= txn_messages;
       setAllMessage(updatedMessageList);
-      setTransactionCount(transactionCount+1);
+      setTransactionCount(prevCount => prevCount+1);
+    }
+  }
+
+  const chooseTransaction = (newTransactionNumber) => {
+    if(newTransactionNumber<=transactionCount && newTransactionNumber>0){
+      let transactionMessages = allMessages[String(newTransactionNumber)];
+      let diagramData = {
+        primaryId: "Replica"+String(transactionMessages["1"]["primary_id"]),
+        replicas: [],
+      }
+      for ( const key in transactionMessages){
+        let replicaData = {
+          id: "Replica"+String(transactionMessages[key]["replica_id"]),
+          states: {
+            prepare: transactionMessages[key]["prepare_time"],
+            commit: transactionMessages[key]["commit_time"],
+            reply: transactionMessages[key]["execution_time"],
+          },
+        };
+        if(replicaData.id==diagramData.primaryId){
+          replicaData["states"].propose = transactionMessages[key]["propose_pre_prepare_time"];
+        }
+        else{
+          replicaData["states"].pre_prepare = transactionMessages[key]["propose_pre_prepare_time"];
+        }
+        diagramData.replicas.push(replicaData);
+      }
+      setDiagramInfo(diagramData);
+      setCurrentTransaction(newTransactionNumber);
     }
   }
 
@@ -175,8 +204,7 @@ function App() {
     txn_values:[""]
   };
 
-  useEffect(()=> {
-    console.log(allMessages);
+  const testSetup = ()=> {
     addMessage(txn_1_replicaMessage_1);
     addMessage(txn_1_replicaMessage_2);
     addMessage(txn_1_replicaMessage_3);
@@ -185,14 +213,15 @@ function App() {
     addMessage(txn_2_replicaMessage_2);
     addMessage(txn_2_replicaMessage_3);
     addMessage(txn_2_replicaMessage_4);
-    console.log(allMessages);
-  }, []);
-  
+    chooseTransaction(1);
+  };
+
 
   return (
     <>
       <div>
-        <PBFT data={data} />
+        <button onClick={testSetup}>Test</button>
+        <PBFT data={diagramInfo} />
       </div>
     </>
   );

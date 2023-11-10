@@ -3,18 +3,28 @@ import * as d3 from "d3";
 
 const PBFTDiagram = ({ data }) => {
   const svgRef = useRef();
+  const phases= [
+    { name: "Request" },
+    { name: "Pre-Prepare" },
+    { name: "Prepare" },
+    { name: "Commit" },
+    { name: "Reply" },
+  ];
+
 
   useEffect(() => {
+    
+  if(Object.keys(data).length!=0){
     const width = 1500;
     const height = 500; // Adjusted for better separation of nodes
-    const phaseWidth = width / (data.phases.length + 1);
+    const phaseWidth = width / (phases.length + 1);
     // Define colors for each phase
     const phaseColors = {
-      Request: "blue",
-      "Pre-Prepare": "orange",
-      Prepare: "green",
-      Commit: "red",
-      Reply: "yellow",
+      propose: "blue",
+      pre_prepare: "orange",
+      prepare: "green",
+      commit: "red",
+      reply: "yellow",
     };
 
     const svg = d3
@@ -24,7 +34,7 @@ const PBFTDiagram = ({ data }) => {
       .style("background-color", "black");
 
     // Drawing phase separators
-    data.phases.forEach((phase, index) => {
+    phases.forEach((phase, index) => {
       svg
         .append("line")
         .attr("x1", phaseWidth * (index + 1))
@@ -70,7 +80,7 @@ const PBFTDiagram = ({ data }) => {
       .attr(
         "x2",
         (d) =>
-          (data.phases.findIndex((p) => p.name === d.phase) + 1) * phaseWidth
+          (phases.findIndex((p) => p.name === d.phase) + 1) * phaseWidth
       )
       .attr(
         "y2",
@@ -99,7 +109,7 @@ const PBFTDiagram = ({ data }) => {
       .attr("fill", "white");
 
     // Adding phase labels
-    data.phases.forEach((phase, index) => {
+    phases.forEach((phase, index) => {
       svg
         .append("text")
         .attr("x", (index + 1) * phaseWidth)
@@ -108,6 +118,8 @@ const PBFTDiagram = ({ data }) => {
         .attr("fill", "white")
         .text(phase.name);
     });
+    console.log("DATA:", data)
+  }
   }, [data]);
 
   return <svg ref={svgRef}></svg>;
