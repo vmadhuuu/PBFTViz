@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import PBFT from './Components/pbft';
 import data from './data/data';
 import './App.css';
-
+import useWebSocket, { ReadyState } from "react-use-websocket";
 
 
 function App() {
@@ -15,6 +15,49 @@ function App() {
   //Stores all messages from ResDB
   const [allMessages, setAllMessage] = useState({});
 
+  const ws1 = new WebSocket('ws://localhost:21001');
+  const ws2 = new WebSocket('ws://localhost:21002');
+  const ws3 = new WebSocket('ws://localhost:21003');
+  const ws4 = new WebSocket('ws://localhost:21004');
+
+  ws1.onopen = () => {
+    console.log('WebSocket1 Open');
+  }
+  ws2.onopen = () => {
+    console.log('WebSocket2 Open');
+  }
+  ws3.onopen = () => {
+    console.log('WebSocket3 Open');
+  }
+  ws4.onopen = () => {
+    console.log('WebSocket4 Open');
+  }
+
+  ws1.onmessage = (event) => {
+    console.log('Received 1 Data: ', event.data);
+  }
+  ws2.onmessage = (event) => {
+    console.log('Received 2 Data: ', event.data);
+  }
+  ws3.onmessage = (event) => {
+    console.log('Received 3 Data: ', event.data);
+  }
+  ws4.onmessage = (event) => {
+    console.log('Received 4 Data: ', event.data);
+  }
+
+  ws1.onclose= () =>{
+    console.log('WebSocket1 Close');
+  }
+  ws2.onclose= () =>{
+    console.log('WebSocket2 Close');
+  }
+  ws3.onclose= () =>{
+    console.log('WebSocket3 Close');
+  }
+  ws4.onclose= () =>{
+    console.log('WebSocket4 Close');
+  }
 
   const addMessage = (newMessage) => {
     const txn_number = String(newMessage.txn_number);
@@ -213,6 +256,7 @@ function App() {
     addMessage(txn_2_replicaMessage_2);
     addMessage(txn_2_replicaMessage_3);
     addMessage(txn_2_replicaMessage_4);
+    console.log(allMessages);
     chooseTransaction(1);
   };
 
