@@ -15,6 +15,8 @@ function App() {
   //Stores all messages from ResDB
   const [allMessages, setAllMessage] = useState({});
 
+  //For Websocket functionality, boot up start_service.sh on backend first, then
+  //load websocket. If console says "Websocket Open" for all 4, functionality works
   const ws1 = new WebSocket('ws://localhost:21001');
   const ws2 = new WebSocket('ws://localhost:21002');
   const ws3 = new WebSocket('ws://localhost:21003');
@@ -34,16 +36,20 @@ function App() {
   }
 
   ws1.onmessage = (event) => {
-    console.log('Received 1 Data: ', event.data);
+    //console.log('Received 1 Data: ', event.data);
+    addMessage(event.data);
   }
   ws2.onmessage = (event) => {
-    console.log('Received 2 Data: ', event.data);
+    //console.log('Received 2 Data: ', event.data);
+    addMessage(event.data);
   }
   ws3.onmessage = (event) => {
-    console.log('Received 3 Data: ', event.data);
+    //console.log('Received 3 Data: ', event.data);
+    addMessage(event.data);
   }
   ws4.onmessage = (event) => {
-    console.log('Received 4 Data: ', event.data);
+    //console.log('Received 4 Data: ', event.data);
+    addMessage(event.data);
   }
 
   ws1.onclose= () =>{
@@ -59,7 +65,13 @@ function App() {
     console.log('WebSocket4 Close');
   }
 
-  const addMessage = (newMessage) => {
+  const addMessage = (receivedMessage) => {
+    let newMessage=JSON.parse(receivedMessage);
+    const reply= new Date().getTime();
+    newMessage = {
+      ...newMessage,
+      reply_time: reply,
+    }
     const txn_number = String(newMessage.txn_number);
     const replica_number = String(newMessage.replica_id);
     let updatedMessageList = allMessages;
@@ -70,6 +82,7 @@ function App() {
         [replica_number]: newMessage,
       };
       updatedMessageList[txn_number]= txn_messages;
+      console.log("Received Message: ", updatedMessageList)
       setAllMessage(updatedMessageList);
     }
     else{
@@ -77,9 +90,11 @@ function App() {
         [replica_number]: newMessage,
       }
       updatedMessageList[txn_number]= txn_messages;
+      console.log("Received Message: ", updatedMessageList)
       setAllMessage(updatedMessageList);
       setTransactionCount(prevCount => prevCount+1);
     }
+    console.log(allMessages);
   }
 
   const chooseTransaction = (newTransactionNumber) => {
