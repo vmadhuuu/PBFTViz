@@ -21,7 +21,6 @@ function App() {
   const ws2 = new WebSocket('ws://localhost:21002');
   const ws3 = new WebSocket('ws://localhost:21003');
   const ws4 = new WebSocket('ws://localhost:21004');
-
   ws1.onopen = () => {
     console.log('WebSocket1 Open');
   }
@@ -275,11 +274,23 @@ function App() {
     chooseTransaction(1);
   };
 
+  const sendMessage = (replicaNumber) => {
+    const ws_list = ['22001', '22002', '22003', '22004'];  
+    const sendWs = new WebSocket('ws://localhost:'+ws_list[replicaNumber]);
+    sendWs.onopen = () => {
+      sendWs.send("Message");
+    }
+  }
+
 
   return (
     <>
       <div>
         <button onClick={testSetup}>Test</button>
+        <button onClick={()=>sendMessage(0)}>Message to Replica 1</button>
+        <button onClick={()=>sendMessage(1)}>Message to Replica 2</button>
+        <button onClick={()=>sendMessage(2)}>Message to Replica 3</button>
+        <button onClick={()=>sendMessage(3)}>Message to Replica 4</button>
         <PBFT data={diagramInfo} />
       </div>
     </>
