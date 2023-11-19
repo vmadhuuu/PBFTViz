@@ -146,7 +146,7 @@ function App() {
   }
 
   const chooseTransaction = (newTransactionNumber) => {
-    if(newTransactionNumber<=transactionCount.current && newTransactionNumber>0){
+    if(newTransactionNumber<=transactionCount.current && newTransactionNumber>0 && String(newTransactionNumber) in allMessages.current){
       let transactionMessages = allMessages.current[String(newTransactionNumber)];
       let diagramData;
       for ( const key in transactionMessages){
@@ -199,6 +199,9 @@ function App() {
       console.log("Diagram data2", diagramData);
       console.log("Prepare data2", prepareList)
       console.log("Commit data2", commitList);
+    }
+    else{
+      console.log("INVALID TRANSACTION NUMBER");
     }
   }
 
