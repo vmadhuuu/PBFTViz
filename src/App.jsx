@@ -19,24 +19,7 @@ function App() {
   console.log("Check", allMessages.current);
   //For Websocket functionality, boot up start_service.sh on backend first, then
   //load websocket. If console says "Websocket Open" for all 4, functionality works
-    
-    let ws1 = new WebSocket('ws://localhost:21001');
-    let ws2 = new WebSocket('ws://localhost:21002');
-    let ws3 = new WebSocket('ws://localhost:21003');
-    let ws4 = new WebSocket('ws://localhost:21004');
- 
-  ws1.onopen = () => {
-    console.log('WebSocket1 Open');
-  }
-  ws2.onopen = () => {
-    console.log('WebSocket2 Open');
-  }
-  ws3.onopen = () => {
-    console.log('WebSocket3 Open');
-  }
-  ws4.onopen = () => {
-    console.log('WebSocket4 Open');
-  }
+  let updatedMessageList;
 
   class Lock{
     constructor(){
@@ -66,52 +49,75 @@ function App() {
     }
   }
 
-  const messageLock= new Lock();
-  ws1.onmessage = async (event) => {
-    //console.log('Received 1 Data: ', event.data);
-    await messageLock.getLock();
-    console.log("Got Lock 1");
-    console.log("Message List:", allMessages.current);
-    addMessage(event.data);
-    messageLock.release();
-  }
-  ws2.onmessage = async (event) => {
-    //console.log('Received 2 Data: ', event.data);
-    await messageLock.getLock();
-    console.log("Got Lock 2");
-    console.log("Message List:", allMessages.current);
-    addMessage(event.data);
-    messageLock.release();
-  }
-  ws3.onmessage = async (event) => {
-    //console.log('Received 3 Data: ', event.data);
-    await messageLock.getLock();
-    console.log("Got Lock 3");
-    console.log("Message List:", allMessages.current);
-    addMessage(event.data);
-    messageLock.release();
-  }
-  ws4.onmessage = async (event) => {
-    //console.log('Received 4 Data: ', event.data);
-    await messageLock.getLock();
-    console.log("Got Lock 4");
-    console.log("Message List:", allMessages.current);
-    addMessage(event.data);
-    messageLock.release();
-  }
+  useEffect(() => {
+    let ws1 = new WebSocket('ws://localhost:21001');
+    let ws2 = new WebSocket('ws://localhost:21002');
+    let ws3 = new WebSocket('ws://localhost:21003');
+    let ws4 = new WebSocket('ws://localhost:21004');
+    const messageLock= new Lock();
 
-  ws1.onclose= () =>{
-    console.log('WebSocket1 Close');
-  }
-  ws2.onclose= () =>{
-    console.log('WebSocket2 Close');
-  }
-  ws3.onclose= () =>{
-    console.log('WebSocket3 Close');
-  }
-  ws4.onclose= () =>{
-    console.log('WebSocket4 Close');
-  }
+    ws1.onopen = () => {
+      console.log('WebSocket1 Open');
+    }
+    ws2.onopen = () => {
+      console.log('WebSocket2 Open');
+    }
+    ws3.onopen = () => {
+      console.log('WebSocket3 Open');
+    }
+    ws4.onopen = () => {
+      console.log('WebSocket4 Open');
+    }
+    ws1.onmessage = async (event) => {
+      //console.log('Received 1 Data: ', event.data);
+      await messageLock.getLock();
+      console.log("Got Lock 1");
+      console.log("Message List:", allMessages.current);
+      addMessage(event.data);
+      console.log("Message Lis 2: ", allMessages.current);
+      messageLock.release();
+    }
+    ws2.onmessage = async (event) => {
+      //console.log('Received 2 Data: ', event.data);
+      await messageLock.getLock();
+      console.log("Got Lock 2");
+      console.log("Message List:", allMessages.current);
+      addMessage(event.data);
+      console.log("Message Lis 2: ", allMessages.current);
+      messageLock.release();
+    }
+    ws3.onmessage = async (event) => {
+      //console.log('Received 3 Data: ', event.data);
+      await messageLock.getLock();
+      console.log("Got Lock 3");
+      console.log("Message List:", allMessages.current);
+      addMessage(event.data);
+      console.log("Message Lis 2: ", allMessages.current);
+      messageLock.release();
+    }
+    ws4.onmessage = async (event) => {
+      //console.log('Received 4 Data: ', event.data);
+      await messageLock.getLock();
+      console.log("Got Lock 4");
+      console.log("Message List:", allMessages.current);
+      addMessage(event.data);
+      console.log("Message Lis 2: ", allMessages.current);
+      messageLock.release();
+    }
+  
+    ws1.onclose= (event) =>{
+      console.log('WebSocket1 Close', event.reason);
+    }
+    ws2.onclose= (event) =>{
+      console.log('WebSocket2 Close', event.reason);
+    }
+    ws3.onclose= (event) =>{
+      console.log('WebSocket3 Close', event.reason);
+    }
+    ws4.onclose= (event) =>{
+      console.log('WebSocket4 Close', event.reason);
+    }
+  }, []);
 
   const addMessage = (receivedMessage) => {
     let newMessage=JSON.parse(receivedMessage);
@@ -122,7 +128,7 @@ function App() {
     }
     const txn_number = String(newMessage.txn_number);
     const replica_number = String(newMessage.replica_id);
-    let updatedMessageList = allMessages.current;
+    updatedMessageList = allMessages.current;
     if(txn_number in updatedMessageList){
       let txn_messages = updatedMessageList[txn_number];
       txn_messages = {
@@ -146,6 +152,7 @@ function App() {
   }
 
   const chooseTransaction = (newTransactionNumber) => {
+    console.log(transactionCount.current);
     if(newTransactionNumber<=transactionCount.current && newTransactionNumber>0 && String(newTransactionNumber) in allMessages.current){
       let transactionMessages = allMessages.current[String(newTransactionNumber)];
       let diagramData;
@@ -341,8 +348,9 @@ function App() {
     txn_values:[""]
   };
 
-  const testSetup = ()=> {
-    console.log("Messages:", allMessages.current);
+  const testSetup = (messageList)=> {
+    console.log("Messages:", messageList);
+    console.log("Messages 2:", allMessages.current)
     chooseTransaction(1);
     console.log(diagramInfo);
   };
@@ -359,7 +367,7 @@ function App() {
   return (
     <>
       <div>
-        <button onClick={testSetup}>Test</button>
+        <button onClick={()=>testSetup(allMessages)}>Test</button>
         <button onClick={()=>sendMessage(0)}>Message to Replica 1</button>
         <button onClick={()=>sendMessage(1)}>Message to Replica 2</button>
         <button onClick={()=>sendMessage(2)}>Message to Replica 3</button>
