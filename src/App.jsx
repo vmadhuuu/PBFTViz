@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useRef, useEffect, useState } from "react";
 import PBFT from './Components/pbft';
 import data from './data/data';
 import './App.css';
@@ -7,20 +7,24 @@ import useWebSocket, { ReadyState } from "react-use-websocket";
 
 function App() {
   //Get total transactions available, so when selecting a transaction we can check if its valid
-  const [transactionCount, setTransactionCount] = useState(0);
+  const transactionCount = useRef(0);
   //Choose which transaction we want to look at, if txn 1 is chosen display txn 1 data
   const [currentTransaction, setCurrentTransaction] = useState(0);
   //Info for PBFT diagram, sent to PBFT data=
   const [diagramInfo, setDiagramInfo] = useState({});
+  const [prepareInfo, setPrepareInfo] = useState({});
+  const [commitInfo, setCommitInfo] = useState({});
   //Stores all messages from ResDB
-  const [allMessages, setAllMessage] = useState({});
-
+  const allMessages = useRef({});
+  console.log("Check", allMessages.current);
   //For Websocket functionality, boot up start_service.sh on backend first, then
   //load websocket. If console says "Websocket Open" for all 4, functionality works
-  const ws1 = new WebSocket('ws://localhost:21001');
-  const ws2 = new WebSocket('ws://localhost:21002');
-  const ws3 = new WebSocket('ws://localhost:21003');
-  const ws4 = new WebSocket('ws://localhost:21004');
+    
+    let ws1 = new WebSocket('ws://localhost:21001');
+    let ws2 = new WebSocket('ws://localhost:21002');
+    let ws3 = new WebSocket('ws://localhost:21003');
+    let ws4 = new WebSocket('ws://localhost:21004');
+ 
   ws1.onopen = () => {
     console.log('WebSocket1 Open');
   }
@@ -34,21 +38,66 @@ function App() {
     console.log('WebSocket4 Open');
   }
 
-  ws1.onmessage = (event) => {
+  class Lock{
+    constructor(){
+      this.lock=false;
+      this.queue=[];
+    }
+    async getLock(){
+      if(!this.lock){
+        this.lock=true;
+        return true;
+      }
+      else{
+        return new Promise((resolve)=> {
+          this.queue.push(resolve);
+        });
+      }
+    }
+
+    release(){
+      if(this.queue.length>0){
+        const resolve = this.queue.shift();
+        resolve(true);
+      }
+      else{
+        this.lock=false;
+      }
+    }
+  }
+
+  const messageLock= new Lock();
+  ws1.onmessage = async (event) => {
     //console.log('Received 1 Data: ', event.data);
+    await messageLock.getLock();
+    console.log("Got Lock 1");
+    console.log("Message List:", allMessages.current);
     addMessage(event.data);
+    messageLock.release();
   }
-  ws2.onmessage = (event) => {
+  ws2.onmessage = async (event) => {
     //console.log('Received 2 Data: ', event.data);
+    await messageLock.getLock();
+    console.log("Got Lock 2");
+    console.log("Message List:", allMessages.current);
     addMessage(event.data);
+    messageLock.release();
   }
-  ws3.onmessage = (event) => {
+  ws3.onmessage = async (event) => {
     //console.log('Received 3 Data: ', event.data);
+    await messageLock.getLock();
+    console.log("Got Lock 3");
+    console.log("Message List:", allMessages.current);
     addMessage(event.data);
+    messageLock.release();
   }
-  ws4.onmessage = (event) => {
+  ws4.onmessage = async (event) => {
     //console.log('Received 4 Data: ', event.data);
+    await messageLock.getLock();
+    console.log("Got Lock 4");
+    console.log("Message List:", allMessages.current);
     addMessage(event.data);
+    messageLock.release();
   }
 
   ws1.onclose= () =>{
@@ -73,7 +122,7 @@ function App() {
     }
     const txn_number = String(newMessage.txn_number);
     const replica_number = String(newMessage.replica_id);
-    let updatedMessageList = allMessages;
+    let updatedMessageList = allMessages.current;
     if(txn_number in updatedMessageList){
       let txn_messages = updatedMessageList[txn_number];
       txn_messages = {
@@ -82,7 +131,7 @@ function App() {
       };
       updatedMessageList[txn_number]= txn_messages;
       console.log("Received Message: ", updatedMessageList)
-      setAllMessage(updatedMessageList);
+      allMessages.current=updatedMessageList;
     }
     else{
       let txn_messages = {
@@ -90,26 +139,32 @@ function App() {
       }
       updatedMessageList[txn_number]= txn_messages;
       console.log("Received Message: ", updatedMessageList)
-      setAllMessage(updatedMessageList);
-      setTransactionCount(prevCount => prevCount+1);
+      allMessages.current=updatedMessageList;
+      transactionCount.current = transactionCount.current+1;
     }
-    console.log(allMessages);
+    console.log(allMessages.current);
   }
 
   const chooseTransaction = (newTransactionNumber) => {
-    if(newTransactionNumber<=transactionCount && newTransactionNumber>0){
-      let transactionMessages = allMessages[String(newTransactionNumber)];
-      let diagramData = {
-        primaryId: "Replica"+String(transactionMessages["1"]["primary_id"]),
-        replicas: [],
+    if(newTransactionNumber<=transactionCount.current && newTransactionNumber>0){
+      let transactionMessages = allMessages.current[String(newTransactionNumber)];
+      let diagramData;
+      for ( const key in transactionMessages){
+        diagramData = {
+          primaryId: "Replica"+String(transactionMessages[key]["primary_id"]),
+          replicas: [],
+        };
+        break;
       }
+      let prepareList = {};
+      let commitList = {};
       for ( const key in transactionMessages){
         let replicaData = {
           id: "Replica"+String(transactionMessages[key]["replica_id"]),
           states: {
             prepare: transactionMessages[key]["prepare_time"],
             commit: transactionMessages[key]["commit_time"],
-            reply: transactionMessages[key]["execution_time"],
+            reply: transactionMessages[key]["reply_time"],
           },
         };
         if(replicaData.id==diagramData.primaryId){
@@ -119,9 +174,31 @@ function App() {
           replicaData["states"].pre_prepare = transactionMessages[key]["propose_pre_prepare_time"];
         }
         diagramData.replicas.push(replicaData);
+        let prepareData=[[0, transactionMessages[key]["prepare_time"]]];
+        let pos=1;
+        for( const _ of transactionMessages[key]["prepare_message_timestamps"]){
+          prepareData.push([pos, transactionMessages[key]["prepare_message_timestamps"][pos-1]]);
+          pos=pos+1;
+        }
+        prepareList[key]=prepareData;
+        let commitData=[[0, transactionMessages[key]["commit_time"]]];
+        pos=1;
+        for( const _ of transactionMessages[key]["commit_message_timestamps"]){
+          commitData.push([pos, transactionMessages[key]["commit_message_timestamps"][pos-1]]);
+          pos=pos+1;
+        }
+        commitList[key]=commitData;
       }
       setDiagramInfo(diagramData);
+      setPrepareInfo(prepareList);
+      setCommitInfo(commitList);
       setCurrentTransaction(newTransactionNumber);
+      console.log("Diagram data", diagramInfo);
+      console.log("Prepare data", prepareInfo)
+      console.log("Commit data", commitInfo);
+      console.log("Diagram data2", diagramData);
+      console.log("Prepare data2", prepareList)
+      console.log("Commit data2", commitList);
     }
   }
 
@@ -262,16 +339,9 @@ function App() {
   };
 
   const testSetup = ()=> {
-    addMessage(txn_1_replicaMessage_1);
-    addMessage(txn_1_replicaMessage_2);
-    addMessage(txn_1_replicaMessage_3);
-    addMessage(txn_1_replicaMessage_4);
-    addMessage(txn_2_replicaMessage_1);
-    addMessage(txn_2_replicaMessage_2);
-    addMessage(txn_2_replicaMessage_3);
-    addMessage(txn_2_replicaMessage_4);
-    console.log(allMessages);
+    console.log("Messages:", allMessages.current);
     chooseTransaction(1);
+    console.log(diagramInfo);
   };
 
   const sendMessage = (replicaNumber) => {
